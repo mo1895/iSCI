@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>iSCSI · Der elegante Lern-Guide</title>
+<meta name="description" content="iSCSI hochwertig und verständlich erklärt: Was es ist, wie es funktioniert, Vorteile, Nachteile und ein praktisches Beispiel." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0B0708; --bg-alt:#100A0C; --surface:#17100F; --surface-2:#1F1517;
+    --wine:#7B1E2B; --wine-deep:#52101A; --wine-bright:#A5283B; --crimson:#C8384A; --rose:#E08497; --emerald:#5FA98A;
+    --text:#F5EFEC; --text-soft:#C4B8B3; --text-dim:#8C7E7A;
+    --line:rgba(255,255,255,0.08); --line-red:rgba(165,40,59,0.30);
+    --shadow:0 24px 60px rgba(0,0,0,0.55); --glow:0 20px 55px rgba(123,30,43,0.35);
+    --radius:20px; --maxw:1120px;
+    --serif:"Playfair Display",Georgia,"Times New Roman",serif;
+    --sans:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; scroll-padding-top:90px; }
+  body { font-family:var(--sans); background:var(--bg); color:var(--text-soft); line-height:1.75; overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+  body::after { content:""; position:fixed; inset:0; z-index:9999; pointer-events:none; opacity:0.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  h1,h2,h3,h4 { font-family:var(--serif); color:var(--text); font-weight:800; line-height:1.2; letter-spacing:-0.01em; }
+  p { color:var(--text-soft); }
+  ::selection { background:var(--wine-bright); color:#fff; }
+  ::-webkit-scrollbar { width:11px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:linear-gradient(var(--wine),var(--wine-deep)); border-radius:10px; border:2px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background:var(--wine-bright); }
+  section { padding:120px 24px; position:relative; }
+  .wrap { max-width:var(--maxw); margin:0 auto; }
+  .bg-alt { background:var(--bg-alt); }
+
+  #progress { position:fixed; top:0; left:0; height:3px; width:0%; z-index:1000; background:linear-gradient(90deg,var(--wine-deep),var(--crimson),var(--rose)); transition:width 0.1s linear; }
+
+  header { position:sticky; top:0; z-index:900; backdrop-filter:blur(16px) saturate(140%); background:rgba(11,7,8,0.72); border-bottom:1px solid var(--line); }
+  nav { max-width:var(--maxw); margin:0 auto; display:flex; align-items:center; justify-content:space-between; padding:16px 24px; }
+  .logo { display:flex; align-items:center; gap:12px; font-family:var(--serif); font-weight:800; font-size:1.2rem; color:var(--text); letter-spacing:0.02em; }
+  .logo .mark { width:40px; height:40px; border-radius:11px; display:grid; place-items:center; background:linear-gradient(145deg,var(--wine-bright),var(--wine-deep)); color:#fff; font-size:0.85rem; font-family:var(--sans); font-weight:700; box-shadow:inset 0 1px 0 rgba(255,255,255,0.25),0 6px 18px rgba(123,30,43,0.45); }
+  .nav-links { display:flex; gap:4px; align-items:center; }
+  .nav-links a { text-decoration:none; color:var(--text-soft); font-weight:500; font-size:0.92rem; padding:9px 15px; border-radius:10px; transition:all 0.25s ease; }
+  .nav-links a:hover { color:var(--text); background:rgba(165,40,59,0.14); }
+  .burger { display:none; background:none; border:1px solid var(--line); color:var(--text); cursor:pointer; font-size:1.3rem; border-radius:10px; width:44px; height:44px; }
+
+  .btn { text-decoration:none; font-family:var(--sans); font-weight:600; font-size:0.98rem; padding:15px 32px; border-radius:14px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:9px; transition:all 0.3s cubic-bezier(0.2,0.7,0.2,1); position:relative; overflow:hidden; }
+  .btn-primary { background:linear-gradient(135deg,var(--wine-bright),var(--wine-deep)); color:#fff; box-shadow:var(--glow),inset 0 1px 0 rgba(255,255,255,0.18); }
+  .btn-primary::after { content:""; position:absolute; top:0; left:-120%; width:60%; height:100%; background:linear-gradient(100deg,transparent,rgba(255,255,255,0.28),transparent); transform:skewX(-18deg); }
+  .btn-primary:hover { transform:translateY(-3px); box-shadow:0 26px 60px rgba(165,40,59,0.5),inset 0 1px 0 rgba(255,255,255,0.25); }
+  .btn-primary:hover::after { left:130%; transition:left 0.7s ease; }
+  .btn-ghost { background:rgba(255,255,255,0.03); color:var(--text); border:1px solid var(--line-red); }
+  .btn-ghost:hover { transform:translateY(-3px); border-color:var(--wine-bright); background:rgba(165,40,59,0.12); }
+
+  .hero { padding:130px 24px 120px; text-align:center; overflow:hidden; }
+  .hero::before { content:""; position:absolute; inset:0; z-index:-1; background:radial-gradient(760px 460px at 78% -8%,rgba(165,40,59,0.30),transparent 60%),radial-gradient(680px 520px at 8% 12%,rgba(82,16,26,0.55),transparent 62%),radial-gradient(900px 700px at 50% 120%,rgba(123,30,43,0.22),transparent 60%); }
+  .hero::after { content:""; position:absolute; inset:0 0 auto 0; height:1px; z-index:-1; background:linear-gradient(90deg,transparent,var(--line-red),transparent); }
+  .eyebrow { display:inline-flex; align-items:center; gap:12px; margin-bottom:26px; font-size:0.8rem; font-weight:600; letter-spacing:0.24em; text-transform:uppercase; color:var(--rose); }
+  .eyebrow::before,.eyebrow::after { content:""; width:34px; height:1px; background:linear-gradient(90deg,transparent,var(--wine-bright)); }
+  .eyebrow::after { background:linear-gradient(90deg,var(--wine-bright),transparent); }
+  .hero h1 { font-size:clamp(2.6rem,8vw,5.4rem); font-weight:900; line-height:1.05; margin:0 auto 26px; max-width:15ch; }
+  .hero h1 .accent { background:linear-gradient(120deg,var(--crimson),var(--rose) 60%,var(--wine-bright)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-style:italic; }
+  .hero .lead { font-size:clamp(1.05rem,2.4vw,1.28rem); max-width:620px; margin:0 auto 40px; }
+  .hero-btns { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+  .stats { display:flex; justify-content:center; gap:0; flex-wrap:wrap; margin-top:64px; border-top:1px solid var(--line); padding-top:40px; }
+  .stat { padding:0 40px; text-align:center; position:relative; }
+  .stat + .stat::before { content:""; position:absolute; left:0; top:8px; bottom:8px; width:1px; background:var(--line); }
+  .stat .num { font-family:var(--serif); font-size:2rem; font-weight:800; color:var(--text); }
+  .stat .lbl { font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim); margin-top:4px; }
+
+  .sec-head { max-width:680px; margin:0 auto 68px; text-align:center; }
+  .kicker { display:inline-block; font-size:0.78rem; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:var(--rose); margin-bottom:18px; }
+  .kicker span { color:var(--wine-bright); font-family:var(--serif); font-style:italic; margin-right:8px; }
+  .sec-head h2 { font-size:clamp(1.9rem,4.5vw,3rem); margin-bottom:18px; }
+  .sec-head p { font-size:1.05rem; }
+
+  .grid { display:grid; gap:24px; }
+  .g-2 { grid-template-columns:repeat(2,1fr); }
+  .g-3 { grid-template-columns:repeat(3,1fr); }
+  .g-4 { grid-template-columns:repeat(4,1fr); }
+  .card { position:relative; background:linear-gradient(160deg,var(--surface-2),var(--surface)); border:1px solid var(--line); border-radius:var(--radius); padding:34px; transition:transform 0.35s cubic-bezier(0.2,0.7,0.2,1),box-shadow 0.35s ease,border-color 0.35s ease; overflow:hidden; }
+  .card::before { content:""; position:absolute; top:0; left:28px; right:28px; height:2px; opacity:0; background:linear-gradient(90deg,transparent,var(--crimson),transparent); transition:opacity 0.4s ease; }
+  .card:hover { transform:translateY(-8px); border-color:var(--line-red); box-shadow:var(--shadow),var(--glow); }
+  .card:hover::before { opacity:1; }
+  .card .ico { width:58px; height:58px; border-radius:15px; display:grid; place-items:center; font-size:1.6rem; margin-bottom:22px; background:linear-gradient(145deg,rgba(165,40,59,0.28),rgba(82,16,26,0.20)); border:1px solid var(--line-red); box-shadow:inset 0 1px 0 rgba(255,255,255,0.08); }
+  .card h3 { font-size:1.3rem; margin-bottom:12px; }
+  .card p { font-size:0.98rem; }
+
+  .terms { display:grid; gap:16px; }
+  .term { display:grid; grid-template-columns:160px 1fr; gap:22px; align-items:center; background:linear-gradient(160deg,var(--surface-2),var(--surface)); border:1px solid var(--line); border-radius:16px; padding:22px 28px; transition:all 0.3s ease; }
+  .term:hover { border-color:var(--line-red); transform:translateX(6px); }
+  .term b { font-family:var(--serif); font-size:1.25rem; color:var(--crimson); font-weight:800; }
+  .term span { color:var(--text-soft); font-size:0.98rem; }
+
+  /* Restaurant-Analogie */
+  .analogy { background:linear-gradient(150deg,rgba(123,30,43,0.20),var(--surface)); border:1px solid var(--line-red); border-radius:var(--radius); padding:42px; margin-bottom:46px; }
+  .analogy-head { text-align:center; max-width:580px; margin:0 auto 36px; }
+  .analogy-head .a-emoji-big { font-size:2.8rem; }
+  .analogy-head h3 { font-size:1.65rem; margin:10px 0 8px; }
+  .analogy-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+  .a-item { text-align:center; padding:26px 22px; background:rgba(0,0,0,0.28); border:1px solid var(--line); border-radius:16px; transition:transform 0.3s ease,border-color 0.3s ease; }
+  .a-item:hover { transform:translateY(-5px); border-color:var(--line-red); }
+  .a-item .a-emoji { font-size:2.4rem; }
+  .a-item .a-role { font-family:var(--serif); font-weight:800; color:var(--text); font-size:1.25rem; margin-top:8px; }
+  .a-item .a-arrow { display:inline-block; margin:10px 0 12px; font-size:0.8rem; font-weight:600; letter-spacing:0.05em; color:var(--rose); background:rgba(165,40,59,0.16); border:1px solid var(--line-red); padding:3px 13px; border-radius:999px; }
+  .a-item p { font-size:0.9rem; }
+
+  .demo { background:linear-gradient(160deg,var(--surface-2),var(--surface)); border:1px solid var(--line); border-radius:var(--radius); padding:44px; text-align:center; box-shadow:var(--shadow); }
+  .flow { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:30px; }
+  .node { background:var(--bg); border:1.5px solid var(--line); border-radius:18px; padding:22px 26px; min-width:158px; transition:all 0.35s ease; }
+  .node .n-ico { font-size:2.1rem; }
+  .node .n-title { font-family:var(--serif); font-weight:800; color:var(--text); margin-top:8px; font-size:1.1rem; }
+  .node .n-sub { font-size:0.78rem; color:var(--text-dim); letter-spacing:0.04em; }
+  .node .n-tag { display:inline-block; margin-top:9px; font-size:0.72rem; letter-spacing:0.03em; color:var(--rose); background:rgba(165,40,59,0.14); border:1px solid var(--line-red); padding:2px 11px; border-radius:999px; }
+  .node.active { border-color:var(--crimson); transform:scale(1.07); box-shadow:0 0 0 6px rgba(200,56,74,0.14),var(--glow); }
+  .pipe { position:relative; width:78px; height:3px; background:var(--line); border-radius:4px; }
+  .packet { position:absolute; top:50%; left:0; width:16px; height:16px; margin-top:-8px; border-radius:5px; opacity:0; background:linear-gradient(135deg,var(--crimson),var(--rose)); box-shadow:0 0 14px var(--crimson); }
+  .packet.go { animation:send 0.9s ease forwards; }
+  .packet.back { animation:sendBack 0.9s ease forwards; }
+  @keyframes send { 0%{left:0;opacity:1;} 100%{left:calc(100% - 16px);opacity:1;} }
+  @keyframes sendBack { 0%{left:calc(100% - 16px);opacity:1;} 100%{left:0;opacity:1;} }
+  .demo-log { text-align:left; background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:20px 22px; min-height:104px; font-family:"SF Mono","Consolas",monospace; font-size:0.9rem; color:var(--text-soft); }
+  .demo-log .line { opacity:0; transform:translateY(6px); animation:fadeUp 0.4s ease forwards; margin-bottom:4px; }
+  .demo-log .ok { color:var(--emerald); }
+  @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+
+  .how-step .step-tag { display:inline-block; font-size:0.76rem; font-weight:600; letter-spacing:0.03em; color:var(--rose); background:rgba(165,40,59,0.14); border:1px solid var(--line-red); padding:4px 12px; border-radius:999px; margin-bottom:14px; }
+  .how-step .tech { margin-top:12px; padding-top:13px; border-top:1px dashed var(--line); font-size:0.9rem; color:var(--text-dim); }
+  .how-step .tech b { color:var(--text-soft); }
+
+  .pros-cons { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  .panel { background:linear-gradient(160deg,var(--surface-2),var(--surface)); border:1px solid var(--line); border-radius:var(--radius); padding:36px; box-shadow:var(--shadow); }
+  .panel h3 { display:flex; align-items:center; gap:12px; margin-bottom:22px; font-size:1.4rem; }
+  .list { list-style:none; display:grid; gap:15px; }
+  .list li { display:flex; gap:14px; align-items:flex-start; color:var(--text-soft); font-size:0.98rem; }
+  .list li .mark { flex:0 0 26px; height:26px; border-radius:8px; display:grid; place-items:center; font-weight:700; font-size:0.9rem; color:#fff; margin-top:2px; }
+  .pro .mark { background:linear-gradient(145deg,var(--emerald),#3d7a63); }
+  .con .mark { background:linear-gradient(145deg,var(--wine-bright),var(--wine-deep)); }
+  .note { background:linear-gradient(160deg,rgba(165,40,59,0.14),var(--surface)); border:1px solid var(--line-red); border-left:3px solid var(--crimson); border-radius:16px; padding:26px 30px; margin-top:28px; }
+  .note b { color:var(--text); }
+
+  .scenario { background:linear-gradient(150deg,rgba(123,30,43,0.24),var(--surface)); border:1px solid var(--line-red); border-radius:var(--radius); padding:36px; margin-bottom:44px; }
+  .scenario h3 { font-size:1.5rem; margin-bottom:12px; }
+  .steps { display:grid; gap:22px; }
+  .step { display:grid; grid-template-columns:62px 1fr; gap:22px; align-items:start; }
+  .step .num { width:62px; height:62px; border-radius:16px; display:grid; place-items:center; font-family:var(--serif); font-weight:800; font-size:1.5rem; color:#fff; background:linear-gradient(145deg,var(--wine-bright),var(--wine-deep)); box-shadow:var(--glow),inset 0 1px 0 rgba(255,255,255,0.2); }
+  .step .body { background:linear-gradient(160deg,var(--surface-2),var(--surface)); border:1px solid var(--line); border-radius:16px; padding:24px 28px; transition:all 0.3s ease; }
+  .step .body:hover { border-color:var(--line-red); }
+  .step .body h4 { font-size:1.2rem; margin-bottom:8px; }
+  code,.code { font-family:"SF Mono","Consolas",monospace; background:rgba(165,40,59,0.16); color:var(--rose); padding:2px 8px; border-radius:6px; font-size:0.88em; }
+  pre { background:#08050699; border:1px solid var(--line); border-radius:12px; padding:20px 22px; overflow-x:auto; margin-top:14px; }
+  pre code { background:none; color:#e6dcd8; padding:0; font-size:0.88rem; line-height:1.7; }
+  pre .cmt { color:var(--text-dim); font-style:italic; }
+
+  .quiz { background:linear-gradient(160deg,var(--surface-2),var(--surface)); border:1px solid var(--line); border-radius:var(--radius); padding:40px; box-shadow:var(--shadow); }
+  .q { margin-bottom:30px; }
+  .q:last-child { margin-bottom:0; }
+  .q .qtitle { color:var(--text); font-family:var(--serif); font-weight:700; font-size:1.15rem; margin-bottom:16px; }
+  .opts { display:grid; gap:11px; }
+  .opt { text-align:left; background:var(--bg); border:1.5px solid var(--line); border-radius:13px; padding:14px 20px; cursor:pointer; transition:all 0.25s ease; color:var(--text-soft); font-family:var(--sans); font-size:0.98rem; }
+  .opt:hover:not(:disabled) { border-color:var(--wine-bright); color:var(--text); transform:translateX(4px); }
+  .opt.correct { border-color:var(--emerald); background:rgba(95,169,138,0.16); color:var(--text); }
+  .opt.wrong { border-color:var(--wine-bright); background:rgba(165,40,59,0.16); color:var(--text); }
+  .feedback { margin-top:12px; font-weight:600; font-size:0.94rem; display:none; }
+
+  .summary { position:relative; overflow:hidden; background:linear-gradient(150deg,var(--wine-deep),#2a0a10 70%); border:1px solid var(--line-red); border-radius:28px; padding:60px 48px; text-align:center; box-shadow:var(--shadow); }
+  .summary::before { content:""; position:absolute; inset:0; z-index:0; background:radial-gradient(600px 300px at 80% 0%,rgba(200,56,74,0.25),transparent 60%); }
+  .summary > * { position:relative; z-index:1; }
+  .summary h2 { font-size:clamp(1.9rem,4.5vw,2.8rem); margin-bottom:18px; }
+  .summary > p { max-width:720px; margin:0 auto; color:rgba(245,239,236,0.86); font-size:1.08rem; }
+  .tldr { display:grid; gap:13px; max-width:760px; margin:36px auto 0; text-align:left; }
+  .tldr .item { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:14px; padding:16px 22px; color:rgba(245,239,236,0.9); font-size:0.98rem; }
+  .tldr .item b { color:#fff; font-family:var(--serif); }
+
+  footer { text-align:center; padding:54px 24px; border-top:1px solid var(--line); color:var(--text-dim); font-size:0.92rem; }
+  footer b { color:var(--text-soft); }
+
+  /* Reveal: standardmäßig SICHTBAR. Nur wenn JS läuft, wird animiert. */
+  .reveal { opacity:1; transform:none; transition:opacity 0.8s cubic-bezier(0.2,0.7,0.2,1),transform 0.8s cubic-bezier(0.2,0.7,0.2,1); }
+  html.js-anim .reveal { opacity:0; transform:translateY(36px); }
+  html.js-anim .reveal.show { opacity:1; transform:translateY(0); }
+
+  #top-btn { position:fixed; right:26px; bottom:26px; width:52px; height:52px; border-radius:15px; border:1px solid var(--line-red); background:linear-gradient(145deg,var(--wine-bright),var(--wine-deep)); color:#fff; font-size:1.3rem; cursor:pointer; box-shadow:var(--glow); opacity:0; pointer-events:none; transition:all 0.35s ease; z-index:800; }
+  #top-btn.show { opacity:1; pointer-events:auto; }
+  #top-btn:hover { transform:translateY(-4px); }
+
+  @media (max-width:1000px) { .g-4 { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:900px) {
+    section { padding:90px 20px; }
+    .g-3,.g-2,.pros-cons { grid-template-columns:1fr; }
+    .nav-links { position:fixed; top:74px; right:16px; flex-direction:column; align-items:stretch; background:var(--surface); border:1px solid var(--line-red); border-radius:18px; padding:14px; width:230px; gap:4px; box-shadow:var(--shadow); transform:translateX(130%); transition:transform 0.35s ease; }
+    .nav-links.open { transform:translateX(0); }
+    .burger { display:grid; place-items:center; }
+    .term { grid-template-columns:1fr; gap:6px; }
+    .term:hover { transform:none; }
+    .stat { padding:12px 26px; }
+    .stat + .stat::before { display:none; }
+  }
+  @media (max-width:760px) { .analogy-grid { grid-template-columns:1fr; } }
+  @media (max-width:640px) {
+    .g-4 { grid-template-columns:1fr; }
+    .pipe { width:3px; height:42px; }
+    .packet.go { animation:sendV 0.9s ease forwards; }
+    @keyframes sendV { 0%{top:0;left:50%;margin-left:-8px;opacity:1;} 100%{top:calc(100% - 16px);left:50%;margin-left:-8px;opacity:1;} }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<header>
+  <nav>
+    <div class="logo"><span class="mark">iS</span> iSCSI</div>
+    <div class="nav-links" id="navLinks">
+      <a href="#einfuehrung">Einführung</a>
+      <a href="#grundlagen">Grundlagen</a>
+      <a href="#funktion">Funktion</a>
+      <a href="#einsatz">Einsatz</a>
+      <a href="#vorteile">Vor &amp; Nachteile</a>
+      <a href="#beispiel">Beispiel</a>
+      <a href="#quiz">Quiz</a>
+      <a href="#fazit">Fazit</a>
+    </div>
+    <button class="burger" id="burger" aria-label="Menü">☰</button>
+  </nav>
+</header>
+
+<section class="hero" id="start">
+  <div class="wrap">
+    <span class="eyebrow">Der verständliche Lern-Guide</span>
+    <h1>iSCSI — Speicher, der im <span class="accent">Netzwerk</span> lebt.</h1>
+    <p class="lead">Eine Festplatte, die gar nicht in deinem Computer steckt, sondern irgendwo im Netzwerk – und sich trotzdem anfühlt wie fest eingebaut. Elegant erklärt, Schritt für Schritt.</p>
+    <div class="hero-btns">
+      <a href="#einfuehrung" class="btn btn-primary">Guide starten →</a>
+      <a href="#beispiel" class="btn btn-ghost">Praktisches Beispiel</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num" id="portNum">3260</div><div class="lbl">Standard-Port</div></div>
+      <div class="stat"><div class="num">TCP/IP</div><div class="lbl">Basis-Technik</div></div>
+      <div class="stat"><div class="num">Block</div><div class="lbl">Speicher-Typ</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="einfuehrung">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker"><span>01</span> Einführung</span>
+      <h2>Was ist iSCSI?</h2>
+      <p>iSCSI steht für <em>Internet Small Computer System Interface</em> – eine „Sprache", mit der ein Computer eine Festplatte über ein ganz normales Netzwerk nutzen kann.</p>
+    </div>
+    <div class="grid g-2">
+      <div class="card reveal">
+        <div class="ico">🔌</div>
+        <h3>Die Idee in einem Satz</h3>
+        <p>iSCSI lässt eine Festplatte, die irgendwo im Netzwerk steht, so aussehen, als wäre sie direkt in deinem PC eingebaut. Dein Computer merkt keinen Unterschied.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico">🧵</div>
+        <h3>Die einfache Analogie</h3>
+        <p>Stell dir ein <strong>sehr langes USB-Kabel</strong> vor, das durch das Netzwerk läuft. Am anderen Ende hängt eine Festplatte in einem anderen Raum – dein PC nutzt sie, als wäre sie angesteckt.</p>
+      </div>
+    </div>
+    <div class="card reveal" style="margin-top:24px;">
+      <h3>Warum gibt es das überhaupt?</h3>
+      <p>Früher brauchte man dafür teure Spezial-Hardware (z. B. Fibre Channel). iSCSI nutzt stattdessen das <strong>ganz normale Netzwerk (Ethernet)</strong>, das ohnehin überall vorhanden ist. Das macht zentralen Speicher günstig, flexibel und erschwinglich.</p>
+    </div>
+  </div>
+</section>
+
+<section id="grundlagen" class="bg-alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker"><span>02</span> Grundlagen</span>
+      <h2>Die 5 Begriffe, die du kennen musst</h2>
+      <p>Verstehst du diese Wörter, verstehst du iSCSI. Sie sind einfacher, als sie klingen.</p>
+    </div>
+    <div class="terms">
+      <div class="term reveal"><b>Initiator</b><span>Der <strong>Client</strong> – der Computer, der Speicherplatz <em>haben möchte</em> (z. B. dein Server). Er „fragt" nach der Festplatte.</span></div>
+      <div class="term reveal"><b>Target</b><span>Das <strong>Ziel</strong> – der Server oder das NAS, das den Speicherplatz <em>bereitstellt</em>. Hier liegen die echten Festplatten.</span></div>
+      <div class="term reveal"><b>LUN</b><span>Die einzelne „Festplatte", die das Target anbietet (Logical Unit Number) – vorstellbar wie eine <em>virtuelle Festplatte</em>.</span></div>
+      <div class="term reveal"><b>IQN</b><span>Der eindeutige <strong>Name</strong> eines Geräts (iSCSI Qualified Name), z. B. <code>iqn.2024-01.de.firma:speicher1</code>.</span></div>
+      <div class="term reveal"><b>Port 3260</b><span>Die <strong>Anschlussstelle</strong>: IP-Adresse des Targets + Port. iSCSI nutzt standardmäßig den <code>Port 3260</code>.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="funktion">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker"><span>03</span> Funktionsweise</span>
+      <h2>Wie funktioniert das eigentlich?</h2>
+      <p>Klingt kompliziert – ist es aber nicht. iSCSI funktioniert im Grunde wie eine <strong>Bestellung im Restaurant</strong>. Nur dass statt Essen deine <strong>Daten</strong> serviert werden – blitzschnell und vollautomatisch.</p>
+    </div>
+
+    <div class="analogy reveal">
+      <div class="analogy-head">
+        <span class="a-emoji-big">🍽️</span>
+        <h3>Stell dir ein Restaurant vor</h3>
+        <p>Drei „Rollen" arbeiten zusammen – genau wie bei iSCSI:</p>
+      </div>
+      <div class="analogy-grid">
+        <div class="a-item">
+          <div class="a-emoji">🙋</div>
+          <div class="a-role">Der Gast</div>
+          <div class="a-arrow">= Initiator</div>
+          <p>Bestellt etwas. Das ist dein Computer, der Daten anfordert.</p>
+        </div>
+        <div class="a-item">
+          <div class="a-emoji">🏃</div>
+          <div class="a-role">Der Kellner</div>
+          <div class="a-arrow">= Netzwerk</div>
+          <p>Bringt die Bestellung hin und das Essen zurück. Das ist das Ethernet-Netzwerk.</p>
+        </div>
+        <div class="a-item">
+          <div class="a-emoji">👨‍🍳</div>
+          <div class="a-role">Die Küche</div>
+          <div class="a-arrow">= Target</div>
+          <p>Bereitet das Gericht zu. Das ist der Speicher-Server mit den echten Festplatten.</p>
+        </div>
+      </div>
+    </div>
+
+    <p style="text-align:center; max-width:620px; margin:0 auto 30px; color:var(--text-soft);">👇 Und so läuft eine einzelne Anfrage ab. Klick auf den Button und schau zu:</p>
+    <div class="demo reveal">
+      <div class="flow">
+        <div class="node" id="nodeInit"><div class="n-ico">💻</div><div class="n-title">Initiator</div><div class="n-sub">Dein Computer</div><div class="n-tag">🙋 der Gast</div></div>
+        <div class="pipe"><div class="packet" id="pkt"></div></div>
+        <div class="node" id="nodeNet"><div class="n-ico">🌐</div><div class="n-title">Netzwerk</div><div class="n-sub">TCP/IP · Port 3260</div><div class="n-tag">🏃 der Kellner</div></div>
+        <div class="pipe"><div class="packet" id="pkt2"></div></div>
+        <div class="node" id="nodeTarget"><div class="n-ico">🗄️</div><div class="n-title">Target</div><div class="n-sub">Speicher-Server</div><div class="n-tag">👨‍🍳 die Küche</div></div>
+      </div>
+      <button class="btn btn-primary" id="playBtn">▶ Bestellung abschicken</button>
+      <div class="demo-log" id="log" style="margin-top:24px;">
+        <div class="line">Bereit. Klicke auf „Bestellung abschicken", um den Ablauf zu sehen.</div>
+      </div>
+    </div>
+
+    <div class="grid g-4" style="margin-top:46px;">
+      <div class="card how-step reveal">
+        <div class="ico">📝</div>
+        <span class="step-tag">🍽️ Im Restaurant</span>
+        <h3>1 · Aufschreiben</h3>
+        <p>Der Kellner notiert deine Bestellung auf einem Zettel.</p>
+        <p class="tech"><b>Technisch:</b> Der Befehl „Lies/Schreibe Daten" (SCSI) wird in Netzwerk-Pakete (TCP/IP) verpackt.</p>
+      </div>
+      <div class="card how-step reveal">
+        <div class="ico">🚚</div>
+        <span class="step-tag">🍽️ Im Restaurant</span>
+        <h3>2 · Hinbringen</h3>
+        <p>Der Kellner läuft mit dem Zettel zur Küche.</p>
+        <p class="tech"><b>Technisch:</b> Die Pakete reisen über das normale Ethernet-Netzwerk zum Target – über Port 3260.</p>
+      </div>
+      <div class="card how-step reveal">
+        <div class="ico">🍳</div>
+        <span class="step-tag">🍽️ Im Restaurant</span>
+        <h3>3 · Zubereiten</h3>
+        <p>Die Küche macht genau das bestellte Gericht fertig.</p>
+        <p class="tech"><b>Technisch:</b> Das Target führt den Befehl auf der echten Festplatte aus (liest oder speichert die Daten).</p>
+      </div>
+      <div class="card how-step reveal">
+        <div class="ico">🍽️</div>
+        <span class="step-tag">🍽️ Im Restaurant</span>
+        <h3>4 · Servieren</h3>
+        <p>Der Kellner bringt das fertige Gericht an deinen Tisch.</p>
+        <p class="tech"><b>Technisch:</b> Die Daten reisen zurück zum Initiator – der merkt keinen Unterschied zu einer eingebauten Platte.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="einsatz" class="bg-alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker"><span>04</span> Anwendung</span>
+      <h2>Wofür wird iSCSI verwendet?</h2>
+      <p>Überall dort, wo mehrere Geräte zentralen, flexiblen Speicher brauchen.</p>
+    </div>
+    <div class="grid g-3">
+      <div class="card reveal"><div class="ico">🖥️</div><h3>Virtualisierung</h3><p>VMware, Hyper-V oder Proxmox speichern ihre virtuellen Maschinen zentral auf iSCSI-Speicher.</p></div>
+      <div class="card reveal"><div class="ico">🏢</div><h3>SAN (Speichernetz)</h3><p>Firmen bauen ein „Storage Area Network", um Speicher zentral für viele Server bereitzustellen.</p></div>
+      <div class="card reveal"><div class="ico">💽</div><h3>Backups</h3><p>Große Datensicherungen werden auf einen zentralen, günstigen Speicher geschrieben.</p></div>
+      <div class="card reveal"><div class="ico">🗃️</div><h3>Datenbanken</h3><p>Anwendungen, die eine „echte" Festplatte (Block-Speicher) brauchen, statt nur Dateifreigaben.</p></div>
+      <div class="card reveal"><div class="ico">💰</div><h3>Günstige Alternative</h3><p>Als preiswerter Ersatz für teure Fibre-Channel-Speichernetze.</p></div>
+      <div class="card reveal"><div class="ico">📈</div><h3>Wachsender Speicher</h3><p>Wenn Speicherbedarf flexibel und ohne neue Hardware im PC wachsen soll.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="vorteile">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker"><span>05</span> Abwägung</span>
+      <h2>Vorteile &amp; mögliche Nachteile</h2>
+      <p>Jede Technik hat zwei Seiten – hier ehrlich gegenübergestellt.</p>
+    </div>
+    <div class="pros-cons">
+      <div class="panel pro reveal">
+        <h3>✅ Vorteile</h3>
+        <ul class="list">
+          <li><span class="mark">+</span><span><b>Günstig:</b> Nutzt vorhandenes Ethernet – keine teure Spezial-Hardware nötig.</span></li>
+          <li><span class="mark">+</span><span><b>Große Reichweite:</b> Funktioniert über weite Strecken, sogar zwischen Standorten.</span></li>
+          <li><span class="mark">+</span><span><b>Block-Speicher:</b> Verhält sich wie eine echte, lokale Festplatte.</span></li>
+          <li><span class="mark">+</span><span><b>Flexibel &amp; skalierbar:</b> Speicher lässt sich leicht erweitern und zuteilen.</span></li>
+          <li><span class="mark">+</span><span><b>Bekannte Technik:</b> Admins kennen Ethernet/TCP-IP bereits.</span></li>
+        </ul>
+      </div>
+      <div class="panel con reveal">
+        <h3>⚠️ Mögliche Nachteile</h3>
+        <ul class="list">
+          <li><span class="mark">–</span><span><b>Netzabhängig:</b> Ist das Netzwerk langsam oder ausgelastet, wird auch der Speicher langsam.</span></li>
+          <li><span class="mark">–</span><span><b>Latenz:</b> Etwas langsamer als eine direkt eingebaute Festplatte.</span></li>
+          <li><span class="mark">–</span><span><b>Sicherheit:</b> Ohne Schutz (CHAP-Login/Verschlüsselung) sind Daten im Netz angreifbar.</span></li>
+          <li><span class="mark">–</span><span><b>CPU-Last:</b> Das Verpacken der Daten kostet Rechenleistung (außer mit Spezial-Netzwerkkarten).</span></li>
+          <li><span class="mark">–</span><span><b>Planung nötig:</b> Für gute Leistung braucht es oft ein eigenes Netzwerk/VLAN.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="note reveal">
+      <p>💡 <b>Merksatz:</b> Die meisten Nachteile von iSCSI hängen am Netzwerk. Ein schnelles, eigenes Netzwerk (z. B. 10-Gigabit-Ethernet) mit Sicherheits-Login löst die größten Probleme.</p>
+    </div>
+  </div>
+</section>
+
+<section id="beispiel" class="bg-alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker"><span>06</span> Praxis</span>
+      <h2>iSCSI in der Praxis: ein Mini-Projekt</h2>
+      <p>Wir folgen einer kleinen Firma, die zentralen Speicher einrichtet – von der Idee bis zur fertigen Festplatte.</p>
+    </div>
+    <div class="scenario reveal">
+      <h3>📖 Das Szenario</h3>
+      <p>Die Firma „Muster GmbH" hat einen <strong>Speicher-Server (Target)</strong> mit viel freiem Platz. Ein zweiter Rechner – der <strong>Buchhaltungs-Server (Initiator)</strong> – braucht dringend mehr Speicher, hat aber keinen Platz für neue Festplatten. Lösung: Der Speicher wird per iSCSI über das Netzwerk „ausgeliehen".</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="num">1</div>
+        <div class="body">
+          <h4>Auf dem Target: Speicher bereitstellen</h4>
+          <p>Auf dem Speicher-Server wird eine virtuelle Festplatte (LUN) erstellt und als iSCSI-Target freigegeben. Beispiel auf Linux mit <code>targetcli</code>:</p>
+          <pre><code><span class="cmt"># 20 GB große virtuelle Festplatte anlegen</span>
+/backstores/fileio create disk1 /storage/disk1.img 20G
+
+<span class="cmt"># Ein Target mit eindeutigem Namen (IQN) erstellen</span>
+/iscsi create iqn.2024-01.de.muster:speicher1
+
+<span class="cmt"># Die Festplatte (LUN) dem Target zuordnen</span>
+/iscsi/iqn.20.../tpg1/luns create /backstores/fileio/disk1</code></pre>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="num">2</div>
+        <div class="body">
+          <h4>Zugriff absichern</h4>
+          <p>Damit nicht jeder zugreifen kann, wird ein <strong>CHAP-Login</strong> (Benutzername + Passwort) eingerichtet. So darf nur der Buchhaltungs-Server die Festplatte nutzen.</p>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="num">3</div>
+        <div class="body">
+          <h4>Auf dem Initiator: Verbinden</h4>
+          <p>Der Buchhaltungs-Server verbindet sich mit dem Target. Unter <strong>Windows</strong> per „iSCSI-Initiator" (grafisch), unter <strong>Linux</strong> per Befehl:</p>
+          <pre><code><span class="cmt"># Nach verfügbaren Targets suchen (Ziel-IP: 192.168.1.10)</span>
+iscsiadm -m discovery -t st -p 192.168.1.10
+
+<span class="cmt"># Mit dem gefundenen Target verbinden (anmelden)</span>
+iscsiadm -m node --login</code></pre>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="num">4</div>
+        <div class="body">
+          <h4>Die „neue" Festplatte nutzen</h4>
+          <p>Jetzt passiert das Magische: Im Buchhaltungs-Server taucht eine <strong>neue Festplatte</strong> auf (z. B. <code>/dev/sdb</code> oder „Datenträger 2" in Windows). Man kann sie ganz normal <strong>formatieren, partitionieren und beschreiben</strong> – als wäre sie eingebaut.</p>
+          <p style="margin-top:10px;">👉 Für Nutzer und Programme ist nicht sichtbar, dass die Festplatte in Wirklichkeit auf einem anderen Server steht. Genau das ist der Sinn von iSCSI!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="quiz">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker"><span>07</span> Selbsttest</span>
+      <h2>Teste dein Wissen</h2>
+      <p>Drei kurze Fragen. Klicke auf die Antwort, die du für richtig hältst.</p>
+    </div>
+    <div class="quiz reveal">
+      <div class="q" data-correct="1">
+        <p class="qtitle">1. Wie nennt man den Computer, der Speicherplatz haben <em>möchte</em>?</p>
+        <div class="opts">
+          <button class="opt">Das Target</button>
+          <button class="opt">Der Initiator</button>
+          <button class="opt">Die LUN</button>
+        </div>
+        <p class="feedback"></p>
+      </div>
+      <div class="q" data-correct="2">
+        <p class="qtitle">2. Über welche Technik überträgt iSCSI die Daten?</p>
+        <div class="opts">
+          <button class="opt">Über ein spezielles Fibre-Channel-Kabel</button>
+          <button class="opt">Über eine direkte USB-Verbindung</button>
+          <button class="opt">Über das normale Netzwerk (TCP/IP-Ethernet)</button>
+        </div>
+        <p class="feedback"></p>
+      </div>
+      <div class="q" data-correct="0">
+        <p class="qtitle">3. Was ist ein typischer Nachteil von iSCSI?</p>
+        <div class="opts">
+          <button class="opt">Die Leistung hängt stark vom Netzwerk ab</button>
+          <button class="opt">Man braucht immer neue, teure Spezial-Hardware</button>
+          <button class="opt">Es funktioniert nur über sehr kurze Distanzen</button>
+        </div>
+        <p class="feedback"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="fazit" class="bg-alt">
+  <div class="wrap">
+    <div class="summary reveal">
+      <h2>Zusammenfassung in Kürze</h2>
+      <p>iSCSI ist eine clevere Technik, die Speicherplatz über das ganz normale Netzwerk verfügbar macht – günstig, flexibel und für den Computer wie eine echte, eingebaute Festplatte.</p>
+      <div class="tldr">
+        <div class="item"><b>Was?</b> &nbsp;Ein Protokoll, das Festplatten-Befehle über das Netzwerk (TCP/IP) überträgt.</div>
+        <div class="item"><b>Wie?</b> &nbsp;Ein <b>Initiator</b> (Client) nutzt Speicher von einem <b>Target</b> (Server) über Port 3260.</div>
+        <div class="item"><b>Wofür?</b> &nbsp;Virtualisierung, Speichernetze (SAN), Backups und Datenbanken.</div>
+        <div class="item"><b>Vor-/Nachteil:</b> &nbsp;Günstig &amp; flexibel – aber die Leistung hängt vom Netzwerk ab.</div>
+        <div class="item"><b>Zukunft?</b> &nbsp;Durch schnelle Netze (10/25/100 Gbit), Cloud &amp; Virtualisierung bleibt iSCSI hochrelevant.</div>
+      </div>
+    </div>
+    <div class="card reveal" style="margin-top:36px;">
+      <h3>🚀 Warum iSCSI auch in Zukunft wichtig bleibt</h3>
+      <p style="margin-top:10px;">Netzwerke werden immer schneller (10, 25, 40 und 100 Gigabit sind heute normal). Damit verschwindet der größte Nachteil von iSCSI – die Geschwindigkeit. Gleichzeitig wächst der Bedarf an zentralem Speicher durch <strong>Cloud, Virtualisierung und riesige Datenmengen</strong>. Weil iSCSI günstig ist und auf vorhandener Technik aufbaut, bleibt es eine wichtige Grundlage für moderne Rechenzentren und „Software-Defined Storage".</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>📚 Deine persönliche Lern-Website zu <b>iSCSI</b> · Erstellt zum Verstehen &amp; Wiederholen</p>
+</footer>
+
+<button id="top-btn" title="Nach oben">↑</button>
+
+<script>
+  // Aktiviert die Animationen NUR wenn JS läuft. Wenn hier ein Fehler wäre,
+  // bliebe diese Zeile aus -> Inhalte bleiben trotzdem sichtbar.
+  document.documentElement.classList.add('js-anim');
+
+  var progress = document.getElementById('progress');
+  var topBtn = document.getElementById('top-btn');
+  window.addEventListener('scroll', function () {
+    var h = document.documentElement;
+    progress.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+    topBtn.classList.toggle('show', h.scrollTop > 500);
+  });
+  topBtn.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+  var burger = document.getElementById('burger');
+  var navLinks = document.getElementById('navLinks');
+  burger.addEventListener('click', function () { navLinks.classList.toggle('open'); });
+  navLinks.querySelectorAll('a').forEach(function (a) {
+    a.addEventListener('click', function () { navLinks.classList.remove('open'); });
+  });
+
+  // Gestaffelte Einblende-Animation
+  document.querySelectorAll('.grid, .terms, .steps, .pros-cons, .analogy-grid').forEach(function (group) {
+    Array.prototype.forEach.call(group.children, function (child, i) {
+      if (child.classList.contains('reveal')) child.style.transitionDelay = (i * 90) + 'ms';
+    });
+  });
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add('show'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+
+  // Port-Zähler im Hero
+  var portEl = document.getElementById('portNum');
+  var started = false;
+  var countObs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting && !started) {
+        started = true;
+        var val = 3200, target = 3260;
+        var t = setInterval(function () {
+          val += 4;
+          if (val >= target) { val = target; clearInterval(t); }
+          portEl.textContent = val;
+        }, 22);
+      }
+    });
+  }, { threshold: 0.5 });
+  countObs.observe(portEl);
+
+  // Interaktives Diagramm (Restaurant-Ablauf)
+  var playBtn = document.getElementById('playBtn');
+  var log = document.getElementById('log');
+  var nInit = document.getElementById('nodeInit');
+  var nNet = document.getElementById('nodeNet');
+  var nTgt = document.getElementById('nodeTarget');
+  var pkt = document.getElementById('pkt');
+  var pkt2 = document.getElementById('pkt2');
+
+  function addLine(text, ok) {
+    var div = document.createElement('div');
+    div.className = 'line' + (ok ? ' ok' : '');
+    div.textContent = text;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  }
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  async function play() {
+    playBtn.disabled = true;
+    log.innerHTML = '';
+    [nInit, nNet, nTgt].forEach(function (n) { n.classList.remove('active'); });
+
+    nInit.classList.add('active');
+    addLine('🙋 Gast (Initiator): „Bitte bring mir die Datei von der Festplatte."');
+    await wait(750);
+
+    addLine('📝 Der Kellner notiert die Bestellung – Befehl wird in TCP/IP-Pakete verpackt …');
+    pkt.className = 'packet'; void pkt.offsetWidth; pkt.classList.add('go');
+    nInit.classList.remove('active'); nNet.classList.add('active');
+    await wait(950);
+
+    addLine('🏃 Der Kellner (Netzwerk) bringt sie zur Küche – über Port 3260 …');
+    pkt2.className = 'packet'; void pkt2.offsetWidth; pkt2.classList.add('go');
+    nNet.classList.remove('active'); nTgt.classList.add('active');
+    await wait(950);
+
+    addLine('👨‍🍳 Die Küche (Target) holt die Daten von der echten Festplatte …');
+    await wait(750);
+
+    addLine('🍽️ Das fertige „Gericht" (deine Daten) wird zurückgetragen …');
+    pkt2.className = 'packet'; void pkt2.offsetWidth; pkt2.classList.add('back');
+    nTgt.classList.remove('active'); nNet.classList.add('active');
+    await wait(950);
+    pkt.className = 'packet'; void pkt.offsetWidth; pkt.classList.add('back');
+    nNet.classList.remove('active'); nInit.classList.add('active');
+    await wait(950);
+
+    addLine('✅ Serviert! Für deinen Computer fühlt es sich an wie eine ganz normale, eingebaute Festplatte.', true);
+    await wait(400);
+    nInit.classList.remove('active');
+    playBtn.disabled = false;
+  }
+  playBtn.addEventListener('click', play);
+
+  // Quiz
+  document.querySelectorAll('.q').forEach(function (q) {
+    var correct = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (opt, i) {
+      opt.addEventListener('click', function () {
+        opts.forEach(function (o) { o.disabled = true; });
+        opts[correct].classList.add('correct');
+        fb.style.display = 'block';
+        if (i === correct) {
+          fb.textContent = '🎉 Richtig! Sehr gut.';
+          fb.style.color = 'var(--emerald)';
+        } else {
+          opt.classList.add('wrong');
+          fb.textContent = '❌ Nicht ganz – die grün markierte Antwort ist richtig.';
+          fb.style.color = 'var(--rose)';
+        }
+      });
+    });
+  });
+</script>
+</body>
+</html>
