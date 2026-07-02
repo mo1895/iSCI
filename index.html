@@ -1465,11 +1465,16 @@ iscsiadm -m node --login</code></pre>
     }, { passive: true });
 
     const animateGlow = () => {
+      const scrollY = window.scrollY || 0;
+      const docH = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const progressRatio = scrollY / docH;
+      document.documentElement.style.setProperty("--scroll", progressRatio);
       glowX += (mouseX - glowX) * 0.08;
       glowY += (mouseY - glowY) * 0.08;
       if (cursorGlow) cursorGlow.style.transform = `translate(${glowX}px, ${glowY}px) translate(-50%, -50%)`;
       document.documentElement.style.setProperty('--px', `${parallaxX}px`);
       document.documentElement.style.setProperty('--py', `${parallaxY}px`);
+      document.documentElement.style.setProperty('--scrollY', `${scrollY}px`);
       requestAnimationFrame(animateGlow);
     };
     animateGlow();
@@ -1672,7 +1677,14 @@ iscsiadm -m node --login</code></pre>
         });
       });
     });
-  </script>
+    const sections = qsa('section.section, section.hero, footer.site-footer');
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY || 0;
+      sections.forEach((sec, i) => {
+        const speed = 0.04 + i * 0.008;
+        sec.style.transform = `translateY(${Math.sin((y / 900) + i) * (10 + i * 1.5)}px)`;
+      });
+    }, { passive: true });
+</script>
 </body>
 </html>
-```
